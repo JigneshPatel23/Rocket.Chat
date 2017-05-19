@@ -426,13 +426,14 @@ class WebRTCClass {
 			return;
 		}
 		const getScreen = (audioStream) => {
-			if (document.cookie.indexOf('rocketchatscreenshare=chrome') === -1 && (window.rocketchatscreenshare == null) && this.navigator !== 'electron') {
-				const refresh = function() {
-					swal({
-						type: 'warning',
-						title: TAPi18n.__('Refresh_your_page_after_install_to_enable_screen_sharing')
-					});
-				};
+			const refresh = function() {
+				swal({
+					type: 'warning',
+					title: TAPi18n.__('Refresh_your_page_after_install_to_enable_screen_sharing')
+				});
+			};
+
+			if (this.navigator === 'chrome' && !ChromeScreenShare.installed) {
 				swal({
 					type: 'warning',
 					title: TAPi18n.__('Screen_Share'),
@@ -443,24 +444,23 @@ class WebRTCClass {
 					cancelButtonText: TAPi18n.__('Cancel')
 				}, (isConfirm) => {
 					if (isConfirm) {
-						if (this.navigator === 'chrome') {
-							const url = 'https://chrome.google.com/webstore/detail/rocketchat-screen-share/nocfbnnmjnndkbipkabodnheejiegccf';
-							try {
-								chrome.webstore.install(url, refresh, function() {
-									window.open(url);
-									refresh();
-								});
-							} catch (_error) {
-								console.log(_error);
-							}
-						} else if (this.navigator === 'firefox') {
-							window.open('https://addons.mozilla.org/en-GB/firefox/addon/rocketchat-screen-share/');
-							refresh();
+						const url = 'https://chrome.google.com/webstore/detail/rocketchat-screen-share/nocfbnnmjnndkbipkabodnheejiegccf';
+						try {
+							chrome.webstore.install(url, refresh, function() {
+								window.open(url);
+								refresh();
+							});
+						} catch (_error) {
+							console.log(_error);
 						}
 					}
 				});
 				return onError(false);
+			} else if (this.navigator === 'firefox' && window.rocketchatscreenshare == null) {
+				window.open('https://addons.mozilla.org/en-GB/firefox/addon/rocketchat-screen-share/');
+				refresh();
 			}
+
 			const getScreenSuccess = (stream) => {
 				if (audioStream != null) {
 					stream.addTrack(audioStream.getAudioTracks()[0]);
